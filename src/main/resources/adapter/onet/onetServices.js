@@ -60,8 +60,8 @@ onetHarvest = function () {
     //        technologySkills: onetService.technologySkills(soc)
     //    });
 
-    var root = "https://services.onetcenter.org/ws/online/";
-    var competencies = [];
+    var root = "https://services.onetcenter.org/ws/";
+    var competencies = {};
 
     var skills = onetService.skills(soc).skills.element;
     debug("skills: " + skills.length);
@@ -71,7 +71,7 @@ onetHarvest = function () {
         c.name = skill.name;
         c.description = skill.description;
         c.id = root + "skills/" + skill.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var knowledges = onetService.knowledge(soc).knowledge.element;
@@ -82,7 +82,7 @@ onetHarvest = function () {
         c.name = knowledge.name;
         c.description = knowledge.description;
         c.id = root + "knowledge/" + knowledge.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var abilities = onetService.abilities(soc).abilities.element;
@@ -93,7 +93,7 @@ onetHarvest = function () {
         c.name = ability.name;
         c.description = ability.description;
         c.id = root + "abilities/" + ability.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var workActivities = onetService.workActivities(soc).work_activities.element;
@@ -104,7 +104,7 @@ onetHarvest = function () {
         c.name = workActivity.name;
         c.description = workActivity.description;
         c.id = root + "work_activities/" + workActivity.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var detailedWorkActivities = onetService.detailedWorkActivities(soc).detailed_work_activities.activity;
@@ -114,7 +114,7 @@ onetHarvest = function () {
         var c = new EcCompetency();
         c.name = detailedWorkActivity.content;
         c.id = root + "detailed_work_activities/" + detailedWorkActivity.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var workStyles = onetService.workStyles(soc).work_styles.element;
@@ -125,7 +125,7 @@ onetHarvest = function () {
         c.name = workStyle.name;
         c.description = workStyle.description;
         c.id = root + "work_styles/" + workStyle.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var tasks = onetService.tasks(soc).tasks.task;
@@ -135,7 +135,7 @@ onetHarvest = function () {
         var c = new EcCompetency();
         c.name = task.statement;
         c.id = root + "tasks/" + task.id;
-        competencies.push(c);
+        competencies[c.id]=c;
     }
 
     var technologySkills = onetService.technologySkills(soc).technology_skills.category;
@@ -145,7 +145,7 @@ onetHarvest = function () {
         var c = new EcCompetency();
         c.name = technologySkill.title.content;
         c.id = root + "tools_technology/" + technologySkill.title.id;
-        competencies.push(c);
+        competencies[c.id]=c;
         if (!EcArray.isArray(technologySkill.example))
             technologySkill.example = [technologySkill.example];
         for (var j = 0; j < technologySkill.example.length; j++) {
@@ -156,13 +156,19 @@ onetHarvest = function () {
             else
                 c.name = example;
             c.id = root + "tools_technology/" + c.name.replaceAll(" ", "_");
-            competencies.push(c);
+        	competencies[c.id]=c;
         }
     }
-    debug("total: " + competencies.length);
-    return JSON.stringify(competencies, null, 2);
+    var keys = EcObject.keys(competencies);
+    debug("total: " + keys.length);
+    for (var i = 0;i < keys.length;i++)
+    {
+    	var registrationId = stringToHex(md5(keys[i]));
+    	var c = competencies[keys[i]];
+		var compVersion=date(null, null, true);
+    	skyrepoPut.call(this,{obj:c.toJson(),type:c.getFullType().replace("http://", "").replaceAll("/", "."),id:registrationId,version:compVersion});
+    }
+    return JSON.stringify(EcObject.keys(competencies), null, 2);
 };
-
-
 
 bindWebService("/onet/harvest", onetHarvest);
