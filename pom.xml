@@ -5,7 +5,7 @@
 	<groupId>org.cassproject</groupId>
 	<artifactId>cass</artifactId>
 	<packaging>war</packaging>
-	<version>0.3.1</version>
+	<version>0.3.2</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -90,7 +90,7 @@
 		<dependency>
 			<groupId>com.eduworks</groupId>
 			<artifactId>ew.levr.ebac.skyid</artifactId>
-			<version>5.10.0</version>
+			<version>SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.websocket</groupId>
@@ -265,6 +265,7 @@
 							<jsTargetDir>src/main/js</jsTargetDir>
 							<jsFinalFile>cass.js</jsFinalFile>
 							<jsEngine>CLOSURE</jsEngine>
+							<skipMinify>true</skipMinify>
 						</configuration>
 						<goals>
 							<goal>minify</goal>
@@ -286,7 +287,7 @@
 						<goals>
 							<goal>update-file-header</goal>
 						</goals>
-						<phase>process-sources</phase>
+						<phase>prepare-package</phase>
 						<configuration>
 							<licenseName>apache_v2</licenseName>
 							<organizationName>Eduworks Corporation and other contributing parties.</organizationName>

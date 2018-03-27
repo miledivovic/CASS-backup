@@ -3,6 +3,26 @@ urlBase=#add(
 );
 #urlBase=urlBase;
 
+amqpConfigPath=#string(obj="adapter.amqp.json");
+amqpConfiguration=#object(
+	enabled="false",
+	hostname="localhost",
+	port="-1",
+	exchange="skyrepo",
+	exchangeType="direct",
+	queue="",
+	durable="true",
+	exclusive="false",
+	autoDelete="true"
+);
+amqpConfiguration=#if(
+	operator=#fileExists(path=amqpConfigPath),
+	operand="false",
+	eq=amqpConfiguration.toString().fileSave(path=amqpConfigPath).toObject(),
+	ne=#fileLoad(path=amqpConfigPath).fileToString().toObject()
+).catch(null=amqpConfiguration,runtime=amqpConfiguration,any=amqpConfiguration).cache(name="amqpConfiguration");
+#amqpConfiguration=amqpConfiguration;
+
 indexBase=#add(a="data");
 #indexBase=indexBase;
 
@@ -37,7 +57,23 @@ postData=#fileFromDatastream(name="data");
 postObject=postData.fileToString().toObject();
 afterSave=#object(
 	a=afterSave,
-	b=#wsBroadcast(obj=postObject.getByParam(param=#id())),
+	z=#wsBroadcast(obj=postObject.getByParam(param=#id())),
+	zz=#if(
+		operator=amqpConfiguration.get(enabled=""),
+		operand="true",
+		eq=#amqpSend(
+			obj=postObject.getByParam(param=#id()),
+			hostName=amqpConfiguration.get(hostname=""),
+			port=amqpConfiguration.get(port=""),
+			exchangeName=amqpConfiguration.get(exchange=""),
+			exchangeType=amqpConfiguration.get(exchangeType=""),
+			routingKey=postObject.getByParam(param=#type()),
+			queue=amqpConfiguration.get(queue=""),
+			durable=amqpConfiguration.get(durable=""),
+			exclusive=amqpConfiguration.get(exclusive=""),
+			autoDelete=amqpConfiguration.get(autoDelete="")
+		)
+	),
 	c=#if(operator=postObject.getByParam(param=#type()),operand="Assertion",eq=postObject.openbadgeCheckId())
 );
 
