@@ -1,8 +1,4 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.8.1
-
-USER root
-RUN curl -sL https://deb.nodesource.com/setup_19.x | bash -
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -qqy nodejs && apt upgrade -qqy && apt clean
+FROM cassproject/ldb:1.5.31
 
 USER elasticsearch
 RUN mkdir CASS
@@ -16,25 +12,7 @@ COPY copyright.txt CASS/copyright.txt
 COPY LICENSE CASS/LICENSE
 RUN cd CASS && npm install --omit=dev && npm upgrade --production --omit=dev --save && npm audit --production --audit-level=high fix
 
-USER root
-RUN echo 'node.name: cass-a' >> config/elasticsearch.yml
-RUN echo 'cluster.initial_master_nodes:' >> config/elasticsearch.yml
-RUN echo '  - cass-a' >> config/elasticsearch.yml
-RUN echo '-Xms2g' >> config/jvm.options
-RUN echo '-Xmx2g' >> config/jvm.options
-ENV xpack.security.enabled=false
-ENV xpack.security.http.ssl.enabled=false
-ENV xpack.security.transport.ssl.enabled=false
-EXPOSE 80
 VOLUME ["/usr/share/elasticsearch/data","/usr/share/elasticsearch/CASS/etc","/usr/share/elasticsearch/CASS/logs"]
-
-USER elasticsearch
-RUN mkdir CASS/etc
-RUN mkdir CASS/logs
-
-USER root
-RUN mkdir /logs
-RUN chown -R elasticsearch:root /logs
 
 USER elasticsearch:root
 ENTRYPOINT (cd CASS && npm run run:standalone && npm run logs) & /bin/tini -- /usr/local/bin/docker-entrypoint.sh
