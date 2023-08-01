@@ -5,8 +5,8 @@ RUN mkdir CASS
 COPY src CASS/src
 COPY package.json CASS/package.json
 COPY ca.crt CASS/ca.crt
-COPY cass.crt CASS/cass.crt
-COPY cass.key CASS/cass.key
+COPY cass.crt CASS/ldb.crt
+COPY cass.key CASS/ldb.key
 COPY pm2.standalone.config.js CASS/pm2.standalone.config.js
 COPY copyright.txt CASS/copyright.txt
 COPY LICENSE CASS/LICENSE
